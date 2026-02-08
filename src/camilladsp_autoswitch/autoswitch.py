@@ -159,6 +159,36 @@ def detect_media_activity() -> bool:
             return True
     return False
 
+def decide_profile(
+    *,
+    state,
+    media_active: bool,
+) -> str:
+    """
+    Decide which profile should be active based on the current state
+    and detected media activity.
+
+    Rules (automatic mode only):
+    - If media is active: use 'cinema'
+    - If media is inactive: use 'music'
+
+    Manual mode always preserves the user-selected profile.
+
+    Args:
+        state: Current CDSPState
+        media_active: Whether media activity is detected
+
+    Returns:
+        Profile name to use ('music' or 'cinema')
+    """
+    if state.mode == "manual":
+        return state.profile
+
+    if media_active:
+        return "cinema"
+
+    return "music"
+
 
 # -----------------------------------------------------------------------------
 # Core autoswitch logic
@@ -177,7 +207,20 @@ def autoswitch_once():
     global _last_yaml, _last_validation_ok
 
     state = load_state()
-    yaml_path = resolve_yaml_path(state)
+    media_active = detect_media_activity()
+
+    effective_profile = decide_profile(
+        state=state,
+        media_active=media_active,
+    )
+
+    # Create a derived state for resolution only
+    effective_state = state
+    effective_state.profile = effective_profile
+
+    yaml_path = resolve_yaml_path(effective_state)
+
+
     yaml_changed = yaml_path != _last_yaml
 
     result = validate(yaml_path)
