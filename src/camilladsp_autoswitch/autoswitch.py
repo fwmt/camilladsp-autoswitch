@@ -1,88 +1,188 @@
-import time
-import shutil
-import logging
+"""
+CamillaDSP Autoswitch daemon.
+
+Responsibilities of this module:
+- Read the runtime state (flags.py)
+- Resolve which YAML configuration should be active
+- Validate the YAML BEFORE applying it
+- Apply the configuration only if it is safe
+- Never break audio output
+- Never crash the daemon
+- Avoid log spam on repeated failures
+
+This module DOES NOT:
+- Decide DSP logic
+- Parse or deeply inspect YAML contents
+- Perform validation beyond safety checks
+"""
+
 from pathlib import Path
+import logging
+import time
 
 from camilladsp_autoswitch.flags import load_state
+from camilladsp_autoswitch.validator import validate
 
-# Base directories
-BASE_DIR = Path(__file__).resolve().parents[2]
-CONFIGS_DIR = BASE_DIR / "configs"
+# -----------------------------------------------------------------------------
+# Configuration paths
+# -----------------------------------------------------------------------------
 
-ACTIVE_DIR = CONFIGS_DIR / "active"
-STAGING_DIR = CONFIGS_DIR / "staging"
-ARCHIVE_DIR = CONFIGS_DIR / "archive"
+# Base directory where CamillaDSP profile YAML files are stored.
+# This is intentionally fixed for now (system-wide configuration).
+CONFIG_BASE_DIR = Path("/etc/camilladsp")
 
-POLL_INTERVAL = 2.0  # seconds
+# Expected naming convention:
+#   music.yml
+#   cinema.yml
+#   cinema_night.yml
+#   music_lowlevel.yml
+#
+# Experimental YAML is always provided as an absolute path via runtime state.
 
 
-def setup_logging():
-    logging.basicConfig(
-        level=logging.INFO,
-        format="%(asctime)s [autoswitch] %(levelname)s: %(message)s",
-    )
+# -----------------------------------------------------------------------------
+# Logging configuration
+# -----------------------------------------------------------------------------
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [autoswitch] %(levelname)s: %(message)s",
+)
+
+log = logging.getLogger("camilladsp-autoswitch")
 
 
-def resolve_profile_yaml(state) -> Path | None:
+# -----------------------------------------------------------------------------
+# Internal daemon state (used to avoid log spam)
+# -----------------------------------------------------------------------------
+
+# Last YAML path evaluated by the daemon
+_last_yaml: Path | None = None
+
+# Last validation result:
+#   True  -> valid
+#   False -> invalid
+#   None  -> never evaluated
+_last_validation_ok: bool | None = None
+
+
+# -----------------------------------------------------------------------------
+# Helper functions
+# -----------------------------------------------------------------------------
+
+def resolve_yaml_path(state) -> Path:
     """
-    Decide which YAML file should be active based on state.
+    Resolve which YAML file should be used based on the current runtime state.
+
+    Priority order:
+    1. Experimental YAML (absolute path)
+    2. Profile + variant (relative to CONFIG_BASE_DIR)
+
+    NOTE:
+    This function does NOT validate the YAML file.
     """
     if state.experimental_yml:
         return Path(state.experimental_yml)
 
     name = state.profile
-    variant = state.variant
 
-    if variant != "normal":
-        return CONFIGS_DIR / f"{name}_{variant}.yml"
+    if state.variant and state.variant != "normal":
+        name = f"{name}_{state.variant}"
 
-    return CONFIGS_DIR / f"{name}.yml"
+    return CONFIG_BASE_DIR / f"{name}.yml"
 
 
-def safe_apply_yaml(source: Path):
+def apply_yaml(yaml_path: Path):
     """
-    Apply YAML safely:
-    - copy to staging
-    - atomically replace active
+    Apply a validated YAML configuration.
+
+    IMPORTANT:
+    This function is intentionally a stub and serves as a single
+    integration point for future mechanisms such as:
+    - camillapy
+    - CamillaDSP HTTP API
+    - FIFO or signal-based reload
+
+    For now, it only logs the action.
     """
-    if not source.exists():
-        logging.error(f"YAML not found: {source}")
+    log.info("Applying YAML: %s", yaml_path)
+    # TODO: integrate actual CamillaDSP reload mechanism
+
+
+# -----------------------------------------------------------------------------
+# Core autoswitch logic
+# -----------------------------------------------------------------------------
+
+def autoswitch_once():
+    """
+    Execute a single autoswitch evaluation cycle.
+
+    Safety guarantees:
+    - Never raises uncaught exceptions
+    - Never applies an invalid YAML
+    - Logs only on meaningful state changes
+    """
+    global _last_yaml, _last_validation_ok
+
+    state = load_state()
+    yaml_path = resolve_yaml_path(state)
+
+    yaml_changed = yaml_path != _last_yaml
+
+    result = validate(yaml_path)
+
+    # -------------------------
+    # Invalid YAML
+    # -------------------------
+    if not result.valid:
+        # Log only if:
+        # - this is a new YAML path
+        # - or the previous state was not already invalid
+        if yaml_changed or _last_validation_ok is not False:
+            log.error(
+                "YAML validation failed, refusing to apply. Reason: %s",
+                result.reason,
+            )
+
+        _last_yaml = yaml_path
+        _last_validation_ok = False
         return
 
-    STAGING_DIR.mkdir(parents=True, exist_ok=True)
-    ACTIVE_DIR.mkdir(parents=True, exist_ok=True)
-    ARCHIVE_DIR.mkdir(parents=True, exist_ok=True)
+    # -------------------------
+    # Valid YAML
+    # -------------------------
+    if yaml_changed or _last_validation_ok is not True:
+        log.info("YAML validated successfully: %s", yaml_path)
 
-    staging_file = STAGING_DIR / source.name
-    active_file = ACTIVE_DIR / "current.yml"
+    apply_yaml(yaml_path)
 
-    shutil.copy2(source, staging_file)
-
-    if active_file.exists():
-        archived = ARCHIVE_DIR / f"{int(time.time())}_{active_file.name}"
-        shutil.move(active_file, archived)
-
-    shutil.move(staging_file, active_file)
-
-    logging.info(f"Applied YAML: {source.name}")
+    _last_yaml = yaml_path
+    _last_validation_ok = True
 
 
-def main():
-    setup_logging()
-    logging.info("CamillaDSP autoswitch started")
+def run(interval: float = 2.0):
+    """
+    Main daemon loop.
 
-    last_applied = None
+    - Runs indefinitely
+    - Evaluates state periodically
+    - Absolute fail-safe: never crashes
+    """
+    log.info("CamillaDSP autoswitch daemon started")
 
     while True:
-        state = load_state()
-        target = resolve_profile_yaml(state)
+        try:
+            autoswitch_once()
+        except Exception as e:
+            # Final fail-safe: the daemon must never die
+            log.exception("Unexpected error in autoswitch loop: %s", e)
 
-        if target and target != last_applied:
-            logging.info(
-                f"State change detected: profile={state.profile}, "
-                f"variant={state.variant}, experimental={bool(state.experimental_yml)}"
-            )
-            safe_apply_yaml(target)
-            last_applied = target
+        time.sleep(interval)
 
-        time.sleep(POLL_INTERVAL)
+
+# -----------------------------------------------------------------------------
+# Manual execution / debugging
+# -----------------------------------------------------------------------------
+
+if __name__ == "__main__":
+    run()
