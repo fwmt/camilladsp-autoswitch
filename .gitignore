@@ -1,12 +1,14 @@
+# Python artifacts
 __pycache__/
 *.pyc
-.env
-/run/
-configs/active/*
-configs/staging/*
-configs/archive/*
+*.pyo
+*.pyd
+
+# Packaging
 *.egg-info/
 .eggs/
 build/
 dist/
+
+# Virtualenv
 .venv/
