@@ -1,12 +1,37 @@
 [Unit]
 Description=CamillaDSP Autoswitch Daemon
-After=network.target camilladsp.service
+After=network.target
 Requires=camilladsp.service
 
 [Service]
 Type=simple
+
+# User / permissions
+User=camilladsp
+Group=camilladsp
+
+# Environment configuration
+EnvironmentFile=-/etc/default/camilladsp-autoswitch
+
+# Main process
 ExecStart=/usr/bin/python3 -m camilladsp_autoswitch.autoswitch
-Restart=always
+
+# Restart policy
+Restart=on-failure
+RestartSec=2
+
+# Watchdog (enabled, ping implemented later)
+WatchdogSec=30
+
+# Security hardening
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectSystem=full
+ProtectHome=true
+
+# Logging
+StandardOutput=journal
+StandardError=journal
 
 [Install]
 WantedBy=multi-user.target
