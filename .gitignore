@@ -1,0 +1,7 @@
+__pycache__/
+*.pyc
+.env
+/run/
+configs/active/*
+configs/staging/*
+configs/archive/*
