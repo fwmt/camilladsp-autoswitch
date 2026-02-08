@@ -12,3 +12,6 @@ dist/
 
 # Virtualenv
 .venv/
+
+# Runtime / local configs
+configs/
