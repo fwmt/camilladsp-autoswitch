@@ -1,11 +1,12 @@
-# camilladsp-control
+# camilladsp-autoswitch
 
-State-driven control and automation layer for CamillaDSP.
+Automatic and safe profile switching for CamillaDSP.
 
 This project provides:
-- Safe profile switching
-- Runtime validation of YAML configs
-- Manual override and experimental modes
+- automatic switching between music and cinema DSP profiles
+- manual override modes
+- experimental YAML testing
+- runtime validation
 - systemd integration
 
 It does NOT replace CamillaDSP or CamillaGUI.

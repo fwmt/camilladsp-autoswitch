@@ -1,8 +1,8 @@
 [project]
-name = "camilladsp-control"
+name = "camilladsp-autoswitch"
 version = "0.1.0"
-description = "Safe automation and control layer for CamillaDSP"
+description = "Automatic and safe profile switching for CamillaDSP"
 requires-python = ">=3.9"
 
 [project.scripts]
-cdspctl = "camilladsp_control.cli:main"
+cdspctl = "camilladsp_autoswitch.cli:main"

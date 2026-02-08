@@ -1,11 +1,11 @@
 [Unit]
-Description=CamillaDSP Control Daemon
+Description=CamillaDSP Autoswitch Daemon
 After=network.target camilladsp.service
 Requires=camilladsp.service
 
 [Service]
 Type=simple
-ExecStart=/usr/bin/python3 -m camilladsp_control.autoswitch
+ExecStart=/usr/bin/python3 -m camilladsp_autoswitch.autoswitch
 Restart=always
 
 [Install]

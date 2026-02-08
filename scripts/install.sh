@@ -1,11 +1,11 @@
 #!/bin/bash
 set -e
 
-echo "Installing camilladsp-control..."
+echo "Installing camilladsp-autoswitch..."
 
 pip install .
 
-install -m 644 systemd/camilladsp-control.service /etc/systemd/system/
+install -m 644 systemd/camilladsp-autoswitch.service /etc/systemd/system/
 
 systemctl daemon-reload
 
