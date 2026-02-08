@@ -25,6 +25,7 @@ import time
 
 from camilladsp_autoswitch.flags import load_state
 from camilladsp_autoswitch.validator import validate
+from camilladsp_autoswitch.detectors.process import is_process_running
 
 # Optional dependency: pycamilladsp
 # The daemon MUST keep running even if this is not installed.
@@ -33,6 +34,7 @@ try:
 except ImportError:
     CamillaDSP = None
 
+logger = logging.getLogger(__name__)
 
 # -----------------------------------------------------------------------------
 # Environment-driven configuration
@@ -50,6 +52,9 @@ LOG_LEVEL = os.environ.get("CDSP_LOG_LEVEL", "INFO").upper()
 
 CAMILLA_HOST = os.environ.get("CDSP_CAMILLA_HOST", "127.0.0.1")
 CAMILLA_PORT = int(os.environ.get("CDSP_CAMILLA_PORT", "1234"))
+MEDIA_PROCESS_NAMES = [
+    "kodi",
+]
 
 
 # -----------------------------------------------------------------------------
@@ -142,6 +147,18 @@ def apply_yaml(yaml_path: Path):
         # Absolute fail-safe: never crash because of DSP connectivity
         log.error("Failed to apply configuration via CamillaDSP API: %s", e)
 
+def detect_media_activity() -> bool:
+    """
+    Detect whether any known media application is currently active.
+
+    Returns:
+        True if at least one configured media process is running.
+    """
+    for process_name in MEDIA_PROCESS_NAMES:
+        if is_process_running(process_name):
+            return True
+    return False
+
 
 # -----------------------------------------------------------------------------
 # Core autoswitch logic
@@ -164,6 +181,14 @@ def autoswitch_once():
     yaml_changed = yaml_path != _last_yaml
 
     result = validate(yaml_path)
+
+    media_active = detect_media_activity()
+
+    logger.info(
+        "Media activity detected: %s",
+        "active" if media_active else "inactive",
+    )
+
 
     if not result.valid:
         if yaml_changed or _last_validation_ok is not False:
