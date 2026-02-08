@@ -76,6 +76,19 @@ _last_validation_ok: bool | None = None
 # Helper functions
 # -----------------------------------------------------------------------------
 
+def _reset_internal_state():
+    """
+    Reset internal autoswitch state.
+
+    This function exists to:
+    - support unit testing
+    - allow clean daemon restarts
+    """
+    global _last_yaml, _last_validation_ok
+    _last_yaml = None
+    _last_validation_ok = None
+
+
 def resolve_yaml_path(state) -> Path:
     """
     Resolve which YAML file should be used based on the current runtime state.
@@ -148,33 +161,23 @@ def autoswitch_once():
 
     state = load_state()
     yaml_path = resolve_yaml_path(state)
-
     yaml_changed = yaml_path != _last_yaml
 
     result = validate(yaml_path)
 
-    # -------------------------
-    # Invalid YAML
-    # -------------------------
     if not result.valid:
         if yaml_changed or _last_validation_ok is not False:
-            log.error(
-                "YAML validation failed, refusing to apply. Reason: %s",
-                result.reason,
-            )
-
+            log.error("YAML invalid: %s", result.reason)
         _last_yaml = yaml_path
         _last_validation_ok = False
         return
 
-    # -------------------------
-    # Valid YAML
-    # -------------------------
     if yaml_changed or _last_validation_ok is not True:
-        log.info("YAML validated successfully: %s", yaml_path)
+        log.info("YAML validated: %s", yaml_path)
 
-    # Only apply if the YAML actually changed
-    if yaml_changed:
+    # 🔑 IMPORTANT FIX:
+    # Apply once on first valid run, then only on changes
+    if _last_yaml is None or yaml_changed:
         apply_yaml(yaml_path)
 
     _last_yaml = yaml_path
@@ -193,6 +196,9 @@ def run():
     log.info("Config dir: %s", CONFIG_BASE_DIR)
     log.info("CamillaDSP endpoint: %s:%d", CAMILLA_HOST, CAMILLA_PORT)
     log.info("Interval: %.2fs", AUTOSWITCH_INTERVAL)
+
+    # Ensure clean state on daemon start
+    _reset_internal_state()
 
     while True:
         try:
