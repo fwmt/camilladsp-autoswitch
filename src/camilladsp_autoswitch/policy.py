@@ -1,56 +1,47 @@
-"""
-Policy definitions for CamillaDSP Autoswitch.
-
-A policy is a pure decision function:
-- it receives facts (e.g. media activity)
-- it returns a decision
-- it has NO side effects
-
-This file defines the default media player policy.
-"""
-
 from dataclasses import dataclass
-from typing import Optional
+import os
 
 
 @dataclass(frozen=True)
 class PolicyDecision:
-    """
-    Result of a policy evaluation.
-
-    Attributes:
-        profile: Logical profile name (e.g. 'music', 'cinema')
-        variant: Optional profile variant (e.g. 'night', 'lowlevel')
-        reason: Human-readable reason for the decision
-    """
     profile: str
-    variant: Optional[str]
+    variant: str | None
     reason: str
 
 
 def media_player_policy(media_active: bool) -> PolicyDecision:
-    """
-    Default autoswitch policy.
-
-    Rule:
-        - If media player is active → cinema
-        - Otherwise → music
-
-    Args:
-        media_active: True if a media player (e.g. Kodi) is running
-
-    Returns:
-        PolicyDecision describing which profile should be active
-    """
     if media_active:
         return PolicyDecision(
             profile="cinema",
             variant=None,
             reason="media_active",
         )
-
     return PolicyDecision(
         profile="music",
         variant=None,
         reason="media_inactive",
+    )
+
+
+def map_decision_to_profile(decision: PolicyDecision) -> PolicyDecision:
+    """
+    Apply environment-based profile remapping.
+
+    IMPORTANT:
+    - Must ALWAYS return a PolicyDecision
+    - Must NEVER return a string
+    """
+
+    if decision.reason == "media_active":
+        profile = os.getenv("CDSP_PROFILE_MEDIA_ACTIVE", decision.profile)
+    elif decision.reason == "media_inactive":
+        profile = os.getenv("CDSP_PROFILE_MEDIA_INACTIVE", decision.profile)
+    else:
+        # manual_mode or any future policy
+        profile = decision.profile
+
+    return PolicyDecision(
+        profile=profile,
+        variant=decision.variant,
+        reason=decision.reason,
     )

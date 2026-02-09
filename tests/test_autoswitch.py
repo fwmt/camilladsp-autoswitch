@@ -22,6 +22,42 @@ from camilladsp_autoswitch.autoswitch import (
 )
 
 from camilladsp_autoswitch.flags import CDSPState
+from camilladsp_autoswitch.intent import SwitchIntent
+
+
+@patch("camilladsp_autoswitch.autoswitch.apply_yaml")
+@patch("camilladsp_autoswitch.autoswitch.validate")
+@patch("camilladsp_autoswitch.autoswitch.build_intent_from_policy")
+@patch("camilladsp_autoswitch.autoswitch.load_state")
+def test_autoswitch_uses_intent_layer(
+    mock_load_state,
+    mock_build_intent,
+    mock_validate,
+    mock_apply,
+):
+    """
+    autoswitch must build and execute an Intent,
+    not act directly on PolicyDecision.
+    """
+
+    mock_load_state.return_value = CDSPState(
+        mode="auto",
+        profile="music",
+        variant="normal",
+    )
+
+    mock_build_intent.return_value = SwitchIntent(
+        profile="cinema",
+        variant=None,
+        reason="media_active",
+    )
+
+    mock_validate.return_value.valid = True
+    mock_validate.return_value.reason = None
+
+    autoswitch_once()
+
+    mock_build_intent.assert_called_once()
 
 
 def test_resolve_yaml_music_normal(tmp_path):
