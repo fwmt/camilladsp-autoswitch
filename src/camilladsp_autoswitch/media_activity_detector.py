@@ -1,60 +1,32 @@
-"""
-Media Activity Detector.
+# media_activity_detector.py
 
-Responsibilities:
-- Observe current media activity (boolean)
-- Detect state transitions
-- Emit domain events via EventBus
-
-Rules:
-- No policy
-- No autoswitch logic
-- No filesystem
-- No CamillaDSP
-"""
-
-from typing import Callable, Optional
-
-from camilladsp_autoswitch.event_bus import EventBus
-from camilladsp_autoswitch.events import MediaActivityChanged
+from camilladsp_autoswitch.events import (
+    ProcessStarted,
+    ProcessStopped,
+    MediaActivityChanged,
+)
 
 
 class MediaActivityDetector:
-    """
-    Detects changes in media activity and emits events.
-    """
+    def __init__(self, bus, media_processes=None):
+        self.bus = bus
+        self.media_processes = set(media_processes or ["kodi"])
+        self.active_processes = set()
 
-    def __init__(
-        self,
-        *,
-        detect_fn: Callable[[], bool],
-        event_bus: EventBus,
-    ) -> None:
-        """
-        Args:
-            detect_fn:
-                Function that returns True if media is active.
-            event_bus:
-                Event bus used to publish domain events.
-        """
-        self._detect_fn = detect_fn
-        self._event_bus = event_bus
-        self._last_state: Optional[bool] = None
+        bus.subscribe(ProcessStarted, self.on_start)
+        bus.subscribe(ProcessStopped, self.on_stop)
 
-    def poll(self) -> None:
-        """
-        Poll current media activity and emit event if state changed.
-        """
-        current_state = self._detect_fn()
+    def on_start(self, event):
+        if event.name in self.media_processes:
+            was_idle = not self.active_processes
+            self.active_processes.add(event.name)
 
-        # First run: initialize state, no event
-        if self._last_state is None:
-            self._last_state = current_state
-            return
+            if was_idle:
+                self.bus.publish(MediaActivityChanged(active=True))
 
-        # State changed → emit event
-        if current_state != self._last_state:
-            self._last_state = current_state
-            self._event_bus.publish(
-                MediaActivityChanged(active=current_state)
-            )
+    def on_stop(self, event):
+        if event.name in self.media_processes:
+            self.active_processes.discard(event.name)
+
+            if not self.active_processes:
+                self.bus.publish(MediaActivityChanged(active=False))

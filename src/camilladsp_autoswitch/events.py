@@ -1,22 +1,8 @@
-"""
-Domain Events.
-
-All events emitted by the system must inherit from Event.
-"""
-
 from dataclasses import dataclass
 
 
 class Event:
-    """
-    Base class for all domain events.
-
-    This class is intentionally minimal.
-    It exists to:
-    - provide a common type
-    - support EventBus typing
-    - allow future metadata extension
-    """
+    """Base marker class"""
     pass
 
 
@@ -26,7 +12,23 @@ class MediaActivityChanged(Event):
 
 
 @dataclass(frozen=True)
-class SwitchIntentCreated(Event):
+class PolicyDecision(Event):
     profile: str
     variant: str | None
     reason: str
+
+
+@dataclass(frozen=True)
+class SwitchIntent(Event):
+    profile: str
+    variant: str | None
+    reason: str
+
+@dataclass(frozen=True)
+class ProcessStarted:
+    name: str
+
+
+@dataclass(frozen=True)
+class ProcessStopped:
+    name: str

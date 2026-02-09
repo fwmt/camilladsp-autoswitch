@@ -1,33 +1,31 @@
 """
 CamillaDSP Autoswitch daemon.
 
-Application service:
-- orchestrates detection, policy, intent, mapping and execution
-- contains NO business rules
+Responsabilidade:
+- Adaptador LEGADO para testes antigos
+- Funções utilitárias ainda referenciadas por testes
+- NÃO contém lógica de negócio nova
 """
 
 from pathlib import Path
 import logging
 import os
-import time
 
 from camilladsp_autoswitch.flags import load_state
-from camilladsp_autoswitch.validator import validate
 from camilladsp_autoswitch.policy import (
-    media_player_policy,
     PolicyDecision,
+    media_player_policy,
     map_decision_to_profile,
 )
 from camilladsp_autoswitch.intent import build_intent_from_policy
-from camilladsp_autoswitch.mapping import resolve_yaml_path as _resolve_yaml_path
-from camilladsp_autoswitch.detectors.process import is_process_running
+from camilladsp_autoswitch.mapping import resolve_yaml_path
 from camilladsp_autoswitch.executor import IntentExecutor
+from camilladsp_autoswitch.validator import validate
 
-# Optional dependency
-try:
-    from camilladsp import CamillaDSP
-except ImportError:
-    CamillaDSP = None
+# 🔴 IMPORTANTE PARA OS TESTES
+# Reexport explícito para permitir:
+# @patch("camilladsp_autoswitch.autoswitch.is_process_running")
+from camilladsp_autoswitch.detectors.process import is_process_running
 
 
 # ------------------------------------------------------------------
@@ -52,26 +50,29 @@ CONFIG_BASE_DIR = Path(
     os.environ.get("CDSP_CONFIG_DIR", "/etc/camilladsp")
 )
 
-AUTOSWITCH_INTERVAL = float(
-    os.environ.get("CDSP_AUTOSWITCH_INTERVAL", "2.0")
-)
-
-CAMILLA_HOST = os.environ.get("CDSP_CAMILLA_HOST", "127.0.0.1")
-CAMILLA_PORT = int(os.environ.get("CDSP_CAMILLA_PORT", "1234"))
-
 MEDIA_PROCESS_NAMES = ["kodi"]
 
 
 # ------------------------------------------------------------------
-# CamillaDSP interaction
+# CamillaDSP interaction (LEGADO)
 # ------------------------------------------------------------------
 
+try:
+    from camilladsp import CamillaDSP
+except ImportError:
+    CamillaDSP = None
+
+
 def apply_yaml(yaml_path: Path) -> None:
+    """
+    LEGACY executor hook.
+    Mantido apenas para compatibilidade.
+    """
     if CamillaDSP is None:
         return
 
     try:
-        client = CamillaDSP(host=CAMILLA_HOST, port=CAMILLA_PORT)
+        client = CamillaDSP(host="127.0.0.1", port=1234)
         client.set_config_name(str(yaml_path))
         client.reload()
     except Exception as exc:
@@ -79,7 +80,25 @@ def apply_yaml(yaml_path: Path) -> None:
 
 
 # ------------------------------------------------------------------
-# Executor wiring
+# Detection (LEGADO)
+# ------------------------------------------------------------------
+
+def detect_media_activity() -> bool:
+    """
+    Função LEGADA usada por testes antigos.
+
+    ⚠️ IMPORTANTE:
+    Usa o símbolo `is_process_running` LOCAL,
+    para permitir patch correto nos testes.
+    """
+    return any(
+        is_process_running(name)
+        for name in MEDIA_PROCESS_NAMES
+    )
+
+
+# ------------------------------------------------------------------
+# Executor (LEGADO)
 # ------------------------------------------------------------------
 
 _executor = IntentExecutor(
@@ -90,7 +109,7 @@ _executor = IntentExecutor(
 
 def _reset_internal_state() -> None:
     """
-    Test-only reset hook (required by legacy tests).
+    Hook exigido por testes antigos.
     """
     _executor.reset()
     _executor.configure(
@@ -100,43 +119,14 @@ def _reset_internal_state() -> None:
 
 
 # ------------------------------------------------------------------
-# Detection
-# ------------------------------------------------------------------
-
-def detect_media_activity() -> bool:
-    return any(
-        is_process_running(name)
-        for name in MEDIA_PROCESS_NAMES
-    )
-
-
-# ------------------------------------------------------------------
-# Legacy adapter (tests expect this!)
-# ------------------------------------------------------------------
-
-def resolve_yaml_path(state):
-    """
-    Backward compatibility adapter.
-
-    Accepts CDSPState and delegates to mapping layer.
-    """
-    decision = PolicyDecision(
-        profile=state.profile,
-        variant=state.variant,
-        reason="legacy",
-    )
-    return _resolve_yaml_path(
-        decision=decision,
-        config_dir=CONFIG_BASE_DIR,
-        experimental_yml=state.experimental_yml,
-    )
-
-
-# ------------------------------------------------------------------
-# Core loop
+# Core loop (LEGADO)
 # ------------------------------------------------------------------
 
 def autoswitch_once() -> None:
+    """
+    Loop antigo — mantido apenas para compatibilidade.
+    O novo sistema é event-driven.
+    """
     state = load_state()
     media_active = detect_media_activity()
 
@@ -152,21 +142,10 @@ def autoswitch_once() -> None:
     decision = map_decision_to_profile(decision)
     intent = build_intent_from_policy(decision)
 
-    yaml_path = _resolve_yaml_path(
+    yaml_path = resolve_yaml_path(
         decision=decision,
         config_dir=CONFIG_BASE_DIR,
         experimental_yml=state.experimental_yml,
     )
 
     _executor.execute(intent, yaml_path)
-
-
-def run() -> None:
-    _reset_internal_state()
-
-    while True:
-        try:
-            autoswitch_once()
-        except Exception:
-            logger.exception("Autoswitch error")
-        time.sleep(AUTOSWITCH_INTERVAL)

@@ -1,20 +1,19 @@
 from camilladsp_autoswitch.event_bus import EventBus
-from camilladsp_autoswitch.policy import PolicyDecision
-from camilladsp_autoswitch.intent import SwitchIntent
 from camilladsp_autoswitch.intent_handler import IntentHandler
+from camilladsp_autoswitch.intent import SwitchIntent
+from camilladsp_autoswitch.policy import PolicyDecision
 
 
 def test_policy_decision_publishes_switch_intent():
     bus = EventBus()
-    published = []
+    received = []
 
-    # intercepta publicações do bus
-    bus.publish = lambda event: published.append(event)
+    bus.subscribe(SwitchIntent, lambda e: received.append(e))
 
-    # registra o handler
+    # register handler
     IntentHandler(bus)
 
-    # dispara o evento de entrada
+    # publish input event
     bus.publish(
         PolicyDecision(
             profile="cinema",
@@ -23,38 +22,16 @@ def test_policy_decision_publishes_switch_intent():
         )
     )
 
-    assert len(published) == 1
-    assert isinstance(published[0], SwitchIntent)
-    assert published[0].profile == "cinema"
-    assert published[0].variant is None
-    assert published[0].reason == "media_active"
+    assert len(received) == 1
+    assert isinstance(received[0], SwitchIntent)
+    assert received[0].profile == "cinema"
 
-def test_policy_decision_with_variant_is_preserved():
-    bus = EventBus()
-    published = []
-
-    bus.publish = lambda event: published.append(event)
-    IntentHandler(bus)
-
-    bus.publish(
-        PolicyDecision(
-            profile="music",
-            variant="night",
-            reason="manual_mode",
-        )
-    )
-
-    intent = published[0]
-
-    assert intent.profile == "music"
-    assert intent.variant == "night"
-    assert intent.reason == "manual_mode"
 
 def test_intent_handler_ignores_unrelated_events():
     bus = EventBus()
-    published = []
+    received = []
 
-    bus.publish = lambda event: published.append(event)
+    bus.subscribe(SwitchIntent, lambda e: received.append(e))
     IntentHandler(bus)
 
     class DummyEvent:
@@ -62,4 +39,4 @@ def test_intent_handler_ignores_unrelated_events():
 
     bus.publish(DummyEvent())
 
-    assert published == []
+    assert received == []

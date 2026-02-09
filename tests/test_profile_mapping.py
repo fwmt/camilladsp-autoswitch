@@ -3,8 +3,7 @@ Tests for mapping logical policy decisions to user-configured profiles.
 """
 
 from camilladsp_autoswitch.policy import PolicyDecision
-from camilladsp_autoswitch.autoswitch import map_decision_to_profile
-
+from camilladsp_autoswitch.policy import map_decision_to_profile
 
 def test_media_active_maps_to_default_profile(monkeypatch):
     """
