@@ -23,24 +23,22 @@ EventHandler = Callable[[Event], None]
 
 
 class EventBus:
-    """
-    Minimal synchronous event bus.
-    """
+    def __init__(self):
+        self._subscribers = {}
 
-    def __init__(self) -> None:
-        self._subscribers: Dict[Type[Event], List[EventHandler]] = defaultdict(list)
+    def subscribe(self, event_type, handler):
+        self._subscribers.setdefault(event_type, []).append(handler)
 
-    def subscribe(self, event_type: Type[Event], handler: EventHandler) -> None:
+    def publish(self, event):
         """
-        Subscribe a handler to an event type.
+        API pública (observável / interceptável em testes)
         """
-        self._subscribers[event_type].append(handler)
+        self._emit(event)
 
-    def publish(self, event: Event) -> None:
+    def _emit(self, event):
         """
-        Publish an event to all subscribers.
-
-        Handlers are executed synchronously.
+        Núcleo interno do EventBus.
+        Nunca deve ser sobrescrito.
         """
         for event_type, handlers in self._subscribers.items():
             if isinstance(event, event_type):
