@@ -1,7 +1,7 @@
 from pathlib import Path
 
 from camilladsp_autoswitch.domain.mapping import MediaMapping, MappingError
-from camilladsp_autoswitch.config.paths import get_config_dir
+from camilladsp_autoswitch.infrastructure.filesystem.paths import get_config_dir
 
 
 # ------------------------------------------------------------------
