@@ -1,7 +1,7 @@
 from camilladsp_autoswitch.event_bus import EventBus
 from camilladsp_autoswitch.domain.events import MediaActivityChanged
 from camilladsp_autoswitch.domain.events import PolicyDecision
-from camilladsp_autoswitch.media_policy_handler import MediaPolicyHandler
+from camilladsp_autoswitch.application.handlers.media_policy_handler import MediaPolicyHandler
 from camilladsp_autoswitch.domain.mapping import ProfileSelection
 
 

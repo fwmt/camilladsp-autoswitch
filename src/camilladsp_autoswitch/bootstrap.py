@@ -16,7 +16,7 @@ from camilladsp_autoswitch.event_bus import EventBus
 from camilladsp_autoswitch.event_store import EventStore
 from camilladsp_autoswitch.event_store_subscriber import EventStoreSubscriber
 from camilladsp_autoswitch.media_activity_detector import MediaActivityDetector
-from camilladsp_autoswitch.media_policy_handler import MediaPolicyHandler
+from camilladsp_autoswitch.application.handlers.media_policy_handler import MediaPolicyHandler
 from camilladsp_autoswitch.intent_handler import IntentHandler
 from camilladsp_autoswitch.intent_executor_handler import IntentExecutorHandler
 from camilladsp_autoswitch.autoswitch import apply_yaml, resolve_yaml_path
