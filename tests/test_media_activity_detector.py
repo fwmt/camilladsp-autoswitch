@@ -1,5 +1,5 @@
 from camilladsp_autoswitch.event_bus import EventBus
-from camilladsp_autoswitch.media_activity_detector import MediaActivityDetector
+from camilladsp_autoswitch.infrastructure.detectors.media_activity_detector import MediaActivityDetector
 from camilladsp_autoswitch.domain.events import ProcessStarted, MediaActivityChanged
 
 def test_emits_active_on_media_process_start():

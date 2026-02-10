@@ -1,7 +1,7 @@
 from unittest.mock import MagicMock
 from camilladsp_autoswitch.event_bus import EventBus
 from camilladsp_autoswitch.intent import SwitchIntent
-from camilladsp_autoswitch.intent_executor_handler import IntentExecutorHandler
+from camilladsp_autoswitch.application.handlers.intent_executor_handler import IntentExecutorHandler
 
 
 def test_executor_handler_applies_valid_intent():

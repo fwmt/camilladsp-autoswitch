@@ -20,7 +20,7 @@ from camilladsp_autoswitch.validators.camilladsp_validator import (
     CamillaDSPBinaryValidator,
 )
 
-from camilladsp_autoswitch.mapping.service import MediaMappingService
+from camilladsp_autoswitch.application.services.mapping_service import MediaMappingService
 from camilladsp_autoswitch.domain.mapping import MappingError
 
 

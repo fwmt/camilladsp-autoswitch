@@ -1,5 +1,5 @@
 from camilladsp_autoswitch.event_bus import EventBus
-from camilladsp_autoswitch.intent_handler import IntentHandler
+from camilladsp_autoswitch.application.handlers.intent_handler import IntentHandler
 from camilladsp_autoswitch.intent import SwitchIntent
 from camilladsp_autoswitch.domain.events import PolicyDecision
 
