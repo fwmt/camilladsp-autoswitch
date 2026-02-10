@@ -15,3 +15,7 @@ dist/
 
 # Runtime / local configs
 configs/
+
+# Development / local runtime
+configs_test/
+state/
