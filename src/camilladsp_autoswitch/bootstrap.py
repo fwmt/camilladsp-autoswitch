@@ -74,7 +74,7 @@ def bootstrap(
     # -----------------------------
     if mapping is None:
         try:
-            mapping = load_media_mapping()
+            mapping = load_media_mapping(allow_fallback=True)
         except Exception:
             # Test / development fallback
             mapping = _fallback_mapping()
