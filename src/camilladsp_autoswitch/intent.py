@@ -8,8 +8,7 @@ This is the Use Case boundary.
 """
 
 from dataclasses import dataclass
-from camilladsp_autoswitch.policy import PolicyDecision
-
+from camilladsp_autoswitch.events import PolicyDecision
 
 @dataclass(frozen=True)
 class SwitchIntent:

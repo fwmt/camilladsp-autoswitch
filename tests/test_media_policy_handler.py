@@ -1,8 +1,22 @@
 from camilladsp_autoswitch.event_bus import EventBus
-from camilladsp_autoswitch.events import MediaActivityChanged
+from camilladsp_autoswitch.events import MediaActivityChanged, PolicyDecision
 from camilladsp_autoswitch.media_policy_handler import MediaPolicyHandler
-from camilladsp_autoswitch.policy import PolicyDecision
+from camilladsp_autoswitch.mapping.media import ProfileSelection
 
+
+class FakeMapping:
+    def select(self, media_active: bool):
+        if media_active:
+            return type(
+                "Selection",
+                (),
+                {"profile": "cinema", "variant": "night"},
+            )()
+        return type(
+            "Selection",
+            (),
+            {"profile": "music", "variant": None},
+        )()
 
 def test_media_active_publishes_cinema_decision():
     bus = EventBus()
@@ -10,7 +24,7 @@ def test_media_active_publishes_cinema_decision():
 
     bus.subscribe(PolicyDecision, lambda event: received.append(event))
 
-    MediaPolicyHandler(bus)
+    MediaPolicyHandler(bus, mapping=FakeMapping())
 
     bus.publish(MediaActivityChanged(active=True))
 
@@ -25,7 +39,7 @@ def test_media_inactive_publishes_music_decision():
 
     bus.subscribe(PolicyDecision, lambda event: received.append(event))
 
-    MediaPolicyHandler(bus)
+    MediaPolicyHandler(bus, mapping=FakeMapping())
 
     bus.publish(MediaActivityChanged(active=False))
 

@@ -2,7 +2,7 @@ from camilladsp_autoswitch.intent import (
     SwitchIntent,
     build_intent_from_policy,
 )
-from camilladsp_autoswitch.policy import PolicyDecision
+from camilladsp_autoswitch.events import PolicyDecision
 
 
 def test_media_active_creates_switch_intent():

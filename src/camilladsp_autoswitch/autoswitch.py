@@ -1,10 +1,9 @@
 """
 CamillaDSP Autoswitch daemon.
 
-Responsabilidade:
-- Adaptador LEGADO para testes antigos
-- Funções utilitárias ainda referenciadas por testes
-- NÃO contém lógica de negócio nova
+LEGACY compatibility module.
+The new system is event-driven; this file exists only
+to keep older tests passing during migration.
 """
 
 from pathlib import Path
@@ -12,19 +11,13 @@ import logging
 import os
 
 from camilladsp_autoswitch.flags import load_state
-from camilladsp_autoswitch.policy import (
-    PolicyDecision,
-    media_player_policy,
-    map_decision_to_profile,
-)
+from camilladsp_autoswitch.events import PolicyDecision
 from camilladsp_autoswitch.intent import build_intent_from_policy
-from camilladsp_autoswitch.mapping import resolve_yaml_path
 from camilladsp_autoswitch.executor import IntentExecutor
 from camilladsp_autoswitch.validator import validate
 
 # 🔴 IMPORTANTE PARA OS TESTES
-# Reexport explícito para permitir:
-# @patch("camilladsp_autoswitch.autoswitch.is_process_running")
+# Reexport explícito para permitir patch correto
 from camilladsp_autoswitch.detectors.process import is_process_running
 
 
@@ -86,15 +79,33 @@ def apply_yaml(yaml_path: Path) -> None:
 def detect_media_activity() -> bool:
     """
     Função LEGADA usada por testes antigos.
-
-    ⚠️ IMPORTANTE:
-    Usa o símbolo `is_process_running` LOCAL,
-    para permitir patch correto nos testes.
     """
     return any(
         is_process_running(name)
         for name in MEDIA_PROCESS_NAMES
     )
+
+
+# ------------------------------------------------------------------
+# YAML resolver (LEGADO)
+# ------------------------------------------------------------------
+
+def resolve_yaml_path(
+    *,
+    decision: PolicyDecision,
+    config_dir: Path,
+    experimental_yml: str | None,
+) -> Path:
+    """
+    LEGACY YAML resolver.
+    """
+    if experimental_yml:
+        return Path(experimental_yml)
+
+    if decision.variant:
+        return config_dir / f"{decision.profile}.{decision.variant}.yml"
+
+    return config_dir / f"{decision.profile}.yml"
 
 
 # ------------------------------------------------------------------
@@ -125,7 +136,6 @@ def _reset_internal_state() -> None:
 def autoswitch_once() -> None:
     """
     Loop antigo — mantido apenas para compatibilidade.
-    O novo sistema é event-driven.
     """
     state = load_state()
     media_active = detect_media_activity()
@@ -137,9 +147,13 @@ def autoswitch_once() -> None:
             reason="manual_mode",
         )
     else:
-        decision = media_player_policy(media_active)
+        # LEGACY behavior: simple mapping
+        decision = PolicyDecision(
+            profile="cinema" if media_active else "music",
+            variant=None,
+            reason="media_active" if media_active else "media_inactive",
+        )
 
-    decision = map_decision_to_profile(decision)
     intent = build_intent_from_policy(decision)
 
     yaml_path = resolve_yaml_path(

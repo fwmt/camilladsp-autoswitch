@@ -3,73 +3,49 @@ Media Policy Handler.
 
 Application-layer component responsible for:
 - Listening to media-related events
-- Applying policy rules
-- Emitting PolicyDecision objects
+- Applying media → profile mapping
+- Emitting PolicyDecision events
 
 Rules:
 - No I/O
 - No filesystem access
-- No CamillaDSP access
 - Pure decision logic
 """
 
 from camilladsp_autoswitch.event_bus import EventBus
-from camilladsp_autoswitch.events import MediaActivityChanged
-from camilladsp_autoswitch.policy import (
-    PolicyDecision,
-    media_player_policy,
-    map_decision_to_profile,
-)
+from camilladsp_autoswitch.events import MediaActivityChanged, PolicyDecision
+from camilladsp_autoswitch.mapping.media import MediaMapping
 
 
 class MediaPolicyHandler:
     """
-    Handles media activity events and produces policy decisions.
-
-    This handler represents the **decision boundary**
-    between detection and execution.
+    Decision boundary between media detection and execution.
     """
 
-    def __init__(self, bus: EventBus):
+    def __init__(
+        self,
+        bus: EventBus,
+        *,
+        mapping: MediaMapping,
+    ):
         self._bus = bus
+        self._mapping = mapping
 
-        # Subscribe to media activity events
         self._bus.subscribe(
             MediaActivityChanged,
             self._on_media_activity_changed,
         )
 
-    # ------------------------------------------------------------------
-    # Event handlers
-    # ------------------------------------------------------------------
-
     def _on_media_activity_changed(
         self,
         event: MediaActivityChanged,
     ) -> None:
-        """
-        React to media activity changes.
+        selection = self._mapping.select(event.active)
 
-        Args:
-            event:
-                MediaActivityChanged event containing
-                whether media is currently active.
-        """
-
-        # --------------------------------------------------------------
-        # 1. Apply policy rules
-        # --------------------------------------------------------------
-
-        decision = media_player_policy(event.active)
-
-        # --------------------------------------------------------------
-        # 2. Apply environment-based profile mapping
-        # --------------------------------------------------------------
-
-        decision = map_decision_to_profile(decision)
-
-        # --------------------------------------------------------------
-        # 3. Emit decision event
-        # --------------------------------------------------------------
+        decision = PolicyDecision(
+            profile=selection.profile,
+            variant=selection.variant,
+            reason="media_active" if event.active else "media_inactive",
+        )
 
         self._bus.publish(decision)
