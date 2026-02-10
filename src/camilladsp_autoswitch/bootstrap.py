@@ -13,17 +13,18 @@ Rules:
 """
 
 from camilladsp_autoswitch.event_bus import EventBus
-from camilladsp_autoswitch.event_store import EventStore
-from camilladsp_autoswitch.event_store_subscriber import EventStoreSubscriber
+from camilladsp_autoswitch.infrastructure.eventing.event_store import EventStore
+from camilladsp_autoswitch.infrastructure.eventing.event_store_subscriber import EventStoreSubscriber
 from camilladsp_autoswitch.infrastructure.detectors.media_activity_detector import MediaActivityDetector
 from camilladsp_autoswitch.application.handlers.media_policy_handler import MediaPolicyHandler
 from camilladsp_autoswitch.application.handlers.intent_handler import IntentHandler
 from camilladsp_autoswitch.application.handlers.intent_executor_handler import IntentExecutorHandler
-from camilladsp_autoswitch.autoswitch import apply_yaml, resolve_yaml_path
+from camilladsp_autoswitch.infrastructure.camilladsp.apply import apply_yaml
+from camilladsp_autoswitch.application.services.yaml_resolver import resolve_yaml_path
 from camilladsp_autoswitch.validator import validate
 
 from camilladsp_autoswitch.domain.mapping import MediaMapping, ProfileSelection
-from camilladsp_autoswitch.infrastructure.filesystem.mapping_loader import load_media_mapping
+from camilladsp_autoswitch.infrastructure.filesystem.media_mapping_loader import load_media_mapping
 
 
 def _fallback_mapping() -> MediaMapping:

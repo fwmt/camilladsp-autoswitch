@@ -1,7 +1,7 @@
 import logging
 
 from camilladsp_autoswitch.event_bus import EventBus
-from camilladsp_autoswitch.event_logger import EventLogger
+from camilladsp_autoswitch.infrastructure.eventing.event_logger import EventLogger
 from camilladsp_autoswitch.domain.events import Event
 
 

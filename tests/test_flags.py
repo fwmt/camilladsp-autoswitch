@@ -6,19 +6,19 @@ import importlib
 import pytest
 
 
-def reload_flags(tmp_path):
+def reload_runtime_state(tmp_path):
     """
-    Reload the flags module with a temporary state dir.
+    Reload the runtime_state module with a temporary state dir.
     """
     os.environ["CDSP_STATE_DIR"] = str(tmp_path)
-    from camilladsp_autoswitch import flags
-    importlib.reload(flags)
-    return flags
+    from camilladsp_autoswitch import runtime_state
+    importlib.reload(runtime_state)
+    return runtime_state
 
 
 def test_default_state_when_missing(tmp_path):
-    flags = reload_flags(tmp_path)
-    state = flags.load_state()
+    runtime_state = reload_runtime_state(tmp_path)
+    state = runtime_state.load_state()
 
     assert state.mode == "auto"
     assert state.profile == "music"
@@ -28,10 +28,10 @@ def test_default_state_when_missing(tmp_path):
 
 
 def test_state_persistence(tmp_path):
-    flags = reload_flags(tmp_path)
+    runtime_state = reload_runtime_state(tmp_path)
 
-    flags.update_state(mode="manual", profile="cinema")
-    state = flags.load_state()
+    runtime_state.update_state(mode="manual", profile="cinema")
+    state = runtime_state.load_state()
 
     assert state.mode == "manual"
     assert state.profile == "cinema"
@@ -45,19 +45,19 @@ def test_state_persistence(tmp_path):
 
 
 def test_partial_update_preserves_other_fields(tmp_path):
-    flags = reload_flags(tmp_path)
+    runtime_state = reload_runtime_state(tmp_path)
 
-    flags.update_state(profile="cinema")
-    flags.update_state(variant="night")
+    runtime_state.update_state(profile="cinema")
+    runtime_state.update_state(variant="night")
 
-    state = flags.load_state()
+    state = runtime_state.load_state()
     assert state.profile == "cinema"
     assert state.variant == "night"
     assert state.mode == "auto"  # unchanged
 
 
 def test_invalid_field_rejected(tmp_path):
-    flags = reload_flags(tmp_path)
+    runtime_state = reload_runtime_state(tmp_path)
 
     with pytest.raises(ValueError):
-        flags.update_state(nonexistent="boom")
+        runtime_state.update_state(nonexistent="boom")

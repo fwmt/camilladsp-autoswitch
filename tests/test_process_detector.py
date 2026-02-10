@@ -9,7 +9,7 @@ the actual system process table.
 import subprocess
 from unittest.mock import patch
 
-from camilladsp_autoswitch.detectors.process import is_process_running
+from camilladsp_autoswitch.infrastructure.detectors.process import is_process_running
 
 
 @patch("subprocess.check_output")

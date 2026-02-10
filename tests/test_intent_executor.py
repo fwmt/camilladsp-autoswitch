@@ -2,7 +2,7 @@ from pathlib import Path
 from unittest.mock import MagicMock
 
 from camilladsp_autoswitch.intent import SwitchIntent
-from camilladsp_autoswitch.executor import IntentExecutor
+from camilladsp_autoswitch.infrastructure.execution.intent_executor import IntentExecutor
 
 
 def test_executor_applies_valid_intent_once(tmp_path):

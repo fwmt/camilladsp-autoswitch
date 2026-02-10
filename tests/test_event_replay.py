@@ -1,6 +1,6 @@
 from camilladsp_autoswitch.event_bus import EventBus
-from camilladsp_autoswitch.event_store import EventStore
-from camilladsp_autoswitch.event_store_subscriber import EventStoreSubscriber
+from camilladsp_autoswitch.infrastructure.eventing.event_store import EventStore
+from camilladsp_autoswitch.infrastructure.eventing.event_store_subscriber import EventStoreSubscriber
 from camilladsp_autoswitch.domain.events import MediaActivityChanged
 
 

@@ -1,4 +1,4 @@
-from camilladsp_autoswitch.event_store import EventStore
+from camilladsp_autoswitch.infrastructure.eventing.event_store import EventStore
 
 
 def test_event_store_records_events():

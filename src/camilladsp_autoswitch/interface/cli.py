@@ -11,7 +11,7 @@ import argparse
 import sys
 from pathlib import Path
 
-from camilladsp_autoswitch.flags import load_state, update_state
+from camilladsp_autoswitch.infrastructure.runtime_state import load_state, update_state
 from camilladsp_autoswitch.infrastructure.filesystem.paths import get_config_dir
 
 from camilladsp_autoswitch.registry.profiles import ProfileRegistry

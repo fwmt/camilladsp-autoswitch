@@ -1,7 +1,7 @@
 from pathlib import Path
 
 from camilladsp_autoswitch.domain.mapping import MediaMapping, MappingError
-from camilladsp_autoswitch.infrastructure.filesystem.mapping_loader import DEFAULT_MAPPING_PATH
+from camilladsp_autoswitch.infrastructure.filesystem.media_mapping_loader import DEFAULT_MAPPING_PATH
 
 
 class MediaMappingService:
