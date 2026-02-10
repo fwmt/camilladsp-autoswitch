@@ -1,5 +1,5 @@
 from camilladsp_autoswitch.intent import SwitchIntent
-from camilladsp_autoswitch.events import PolicyDecision
+from camilladsp_autoswitch.domain.events import PolicyDecision
 
 class IntentHandler:
     """

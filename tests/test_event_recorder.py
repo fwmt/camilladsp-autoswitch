@@ -1,6 +1,6 @@
 from camilladsp_autoswitch.event_bus import EventBus
 from camilladsp_autoswitch.event_recorder import EventRecorder
-from camilladsp_autoswitch.events import MediaActivityChanged
+from camilladsp_autoswitch.domain.events import MediaActivityChanged
 
 
 def test_event_recorder_records_events():

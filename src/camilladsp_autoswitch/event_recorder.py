@@ -1,4 +1,4 @@
-from camilladsp_autoswitch.events import Event
+from camilladsp_autoswitch.domain.events import Event
 
 
 class EventRecorder:

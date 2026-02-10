@@ -1,7 +1,7 @@
 from unittest.mock import MagicMock
 from camilladsp_autoswitch.event_bus import EventBus
 from camilladsp_autoswitch.bootstrap import bootstrap
-from camilladsp_autoswitch.events import ProcessStarted
+from camilladsp_autoswitch.domain.events import ProcessStarted
 
 def test_full_event_pipeline_triggers_apply():
     apply = MagicMock()

@@ -1,6 +1,6 @@
 from camilladsp_autoswitch.event_bus import EventBus
 from camilladsp_autoswitch.media_activity_detector import MediaActivityDetector
-from camilladsp_autoswitch.events import ProcessStarted, MediaActivityChanged
+from camilladsp_autoswitch.domain.events import ProcessStarted, MediaActivityChanged
 
 def test_emits_active_on_media_process_start():
     bus = EventBus()
@@ -15,7 +15,7 @@ def test_emits_active_on_media_process_start():
     assert len(received) == 1
     assert received[0].active is True
 
-from camilladsp_autoswitch.events import ProcessStopped
+from camilladsp_autoswitch.domain.events import ProcessStopped
 
 def test_emits_inactive_on_media_process_stop():
     bus = EventBus()

@@ -1,7 +1,7 @@
 import pytest
 from pathlib import Path
 
-from camilladsp_autoswitch.mapping.media import (
+from camilladsp_autoswitch.domain.mapping import (
     MediaMapping,
     MappingError,
 )

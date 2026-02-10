@@ -6,9 +6,9 @@ without affecting behavior.
 """
 
 import logging
-from camilladsp_autoswitch.events import Event
+from camilladsp_autoswitch.domain.events import Event
 
-logger = logging.getLogger("camilladsp_autoswitch.events")
+logger = logging.getLogger("camilladsp_autoswitch.domain.events")
 
 
 class EventLogger:

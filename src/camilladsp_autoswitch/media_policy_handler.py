@@ -13,8 +13,8 @@ Rules:
 """
 
 from camilladsp_autoswitch.event_bus import EventBus
-from camilladsp_autoswitch.events import MediaActivityChanged, PolicyDecision
-from camilladsp_autoswitch.mapping.media import MediaMapping
+from camilladsp_autoswitch.domain.events import MediaActivityChanged, PolicyDecision
+from camilladsp_autoswitch.domain.mapping import MediaMapping
 
 
 class MediaPolicyHandler:

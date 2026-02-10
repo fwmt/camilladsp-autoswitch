@@ -2,7 +2,7 @@ from unittest.mock import MagicMock
 
 from camilladsp_autoswitch.event_bus import EventBus
 from camilladsp_autoswitch.logging_subscriber import LoggingSubscriber
-from camilladsp_autoswitch.events import MediaActivityChanged
+from camilladsp_autoswitch.domain.events import MediaActivityChanged
 
 
 def test_logging_subscriber_logs_event():

@@ -1,6 +1,6 @@
 # media_activity_detector.py
 
-from camilladsp_autoswitch.events import (
+from camilladsp_autoswitch.domain.events import (
     ProcessStarted,
     ProcessStopped,
     MediaActivityChanged,

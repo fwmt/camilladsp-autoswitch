@@ -2,7 +2,7 @@ import logging
 
 from camilladsp_autoswitch.event_bus import EventBus
 from camilladsp_autoswitch.event_logger import EventLogger
-from camilladsp_autoswitch.events import Event
+from camilladsp_autoswitch.domain.events import Event
 
 
 class DummyEvent(Event):
@@ -19,7 +19,7 @@ def test_event_logger_logs_published_events(caplog):
 
     event = DummyEvent("test")
 
-    with caplog.at_level(logging.INFO, logger="camilladsp_autoswitch.events"):
+    with caplog.at_level(logging.INFO, logger="camilladsp_autoswitch.domain.events"):
         bus.publish(event)
 
     assert len(caplog.records) == 1

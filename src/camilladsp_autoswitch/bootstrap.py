@@ -22,7 +22,7 @@ from camilladsp_autoswitch.intent_executor_handler import IntentExecutorHandler
 from camilladsp_autoswitch.autoswitch import apply_yaml, resolve_yaml_path
 from camilladsp_autoswitch.validator import validate
 
-from camilladsp_autoswitch.mapping.media import MediaMapping, ProfileSelection
+from camilladsp_autoswitch.domain.mapping import MediaMapping, ProfileSelection
 from camilladsp_autoswitch.mapping.loader import load_media_mapping
 
 

@@ -2,7 +2,7 @@
 Media activity source via DBus (MPRIS compatible).
 """
 
-from camilladsp_autoswitch.events import MediaActivityChanged
+from camilladsp_autoswitch.domain.events import MediaActivityChanged
 
 
 class DbusMediaActivitySource:

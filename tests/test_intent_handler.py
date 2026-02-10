@@ -1,7 +1,7 @@
 from camilladsp_autoswitch.event_bus import EventBus
 from camilladsp_autoswitch.intent_handler import IntentHandler
 from camilladsp_autoswitch.intent import SwitchIntent
-from camilladsp_autoswitch.events import PolicyDecision
+from camilladsp_autoswitch.domain.events import PolicyDecision
 
 
 def test_policy_decision_publishes_switch_intent():

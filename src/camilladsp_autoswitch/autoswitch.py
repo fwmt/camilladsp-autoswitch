@@ -11,7 +11,7 @@ import logging
 import os
 
 from camilladsp_autoswitch.flags import load_state
-from camilladsp_autoswitch.events import PolicyDecision
+from camilladsp_autoswitch.domain.events import PolicyDecision
 from camilladsp_autoswitch.intent import build_intent_from_policy
 from camilladsp_autoswitch.executor import IntentExecutor
 from camilladsp_autoswitch.validator import validate
