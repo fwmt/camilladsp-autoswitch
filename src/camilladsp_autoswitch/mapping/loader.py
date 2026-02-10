@@ -1,18 +1,25 @@
 from pathlib import Path
 
 from camilladsp_autoswitch.mapping.media import MediaMapping, MappingError
+from camilladsp_autoswitch.config.paths import get_config_dir
 
 
-DEFAULT_MAPPING_PATH = Path("/etc/camilladsp-autoswitch/mapping.yml")
+# ------------------------------------------------------------------
+# Default path (RESPEITA CDSP_CONFIG_DIR)
+# ------------------------------------------------------------------
+
+DEFAULT_MAPPING_PATH = get_config_dir() / "mapping.yml"
 
 
-class MediaMappingLoadError(RuntimeError):
+# ------------------------------------------------------------------
+# Loader
+# ------------------------------------------------------------------
+
+class MediaMappingLoadError(Exception):
     """Raised when media mapping cannot be loaded."""
 
 
-def load_media_mapping(
-    path: Path | None = None,
-) -> MediaMapping:
+def load_media_mapping(path: Path | None = None) -> MediaMapping:
     """
     Load MediaMapping from disk.
 
